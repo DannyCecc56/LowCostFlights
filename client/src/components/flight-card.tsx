@@ -17,6 +17,8 @@ export default function FlightCard({
   arrivalAirport, 
   onBook 
 }: FlightCardProps) {
+  const price = typeof flight.price === 'string' ? parseFloat(flight.price) : flight.price;
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -24,9 +26,9 @@ export default function FlightCard({
           <Plane className="h-5 w-5 text-primary" />
           <span className="font-semibold">{flight.airline}</span>
         </div>
-        <span className="text-2xl font-bold">€{flight.price}</span>
+        <span className="text-2xl font-bold">€{price.toFixed(2)}</span>
       </CardHeader>
-      
+
       <CardContent>
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -34,7 +36,7 @@ export default function FlightCard({
             <p className="font-semibold">{departureAirport.city}</p>
             <p className="text-sm">{formatTime(flight.departureTime)}</p>
           </div>
-          
+
           <div className="flex-1 border-t border-dashed mx-4 relative">
             <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2">
               <Clock className="h-4 w-4 text-muted-foreground" />

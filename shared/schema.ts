@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -15,7 +15,7 @@ export const flights = pgTable("flights", {
   arrivalAirportId: integer("arrival_airport_id").notNull(),
   departureTime: timestamp("departure_time").notNull(),
   arrivalTime: timestamp("arrival_time").notNull(),
-  price: decimal("price").notNull(),
+  price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   airline: text("airline").notNull(),
   flightNumber: text("flight_number").notNull(),
 });
