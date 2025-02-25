@@ -4,20 +4,21 @@ import FlightCard from "@/components/flight-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
+import type { Flight, Airport } from "@shared/schema";
 
 export default function SearchResults() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
 
-  const { data: flights, isLoading: isLoadingFlights } = useQuery({
+  const { data: flights, isLoading: isLoadingFlights } = useQuery<Flight[]>({
     queryKey: ["/api/flights/search", searchParams.toString()],
   });
 
-  const { data: airports, isLoading: isLoadingAirports } = useQuery({
+  const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
     queryKey: ["/api/airports"],
   });
 
-  if (isLoadingFlights || isLoadingAirports) {
+  if (isLoadingFlights || isLoadingAirports || !flights || !airports) {
     return (
       <div className="container mx-auto p-4">
         <div className="space-y-4">
@@ -48,20 +49,27 @@ export default function SearchResults() {
       </div>
 
       <div className="space-y-4">
-        {flights?.length === 0 ? (
+        {flights.length === 0 ? (
           <p className="text-center text-muted-foreground">
             Nessun volo trovato per i criteri selezionati
           </p>
         ) : (
-          flights?.map((flight) => (
-            <FlightCard
-              key={flight.id}
-              flight={flight}
-              departureAirport={airports?.find(a => a.id === flight.departureAirportId)!}
-              arrivalAirport={airports?.find(a => a.id === flight.arrivalAirportId)!}
-              onBook={() => handleBook(flight.id)}
-            />
-          ))
+          flights.map((flight) => {
+            const departureAirport = airports.find(a => a.id === flight.departureAirportId);
+            const arrivalAirport = airports.find(a => a.id === flight.arrivalAirportId);
+
+            if (!departureAirport || !arrivalAirport) return null;
+
+            return (
+              <FlightCard
+                key={flight.id}
+                flight={flight}
+                departureAirport={departureAirport}
+                arrivalAirport={arrivalAirport}
+                onBook={() => handleBook(flight.id)}
+              />
+            );
+          })
         )}
       </div>
     </div>

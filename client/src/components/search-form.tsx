@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { searchFlightsSchema } from "@shared/schema";
+import { searchFlightsSchema, type Airport } from "@shared/schema";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { CalendarIcon } from "lucide-react";
 
 export default function SearchForm() {
   const [, setLocation] = useLocation();
-  const { data: airports, isLoading } = useQuery({ 
+  const { data: airports } = useQuery<Airport[]>({ 
     queryKey: ["/api/airports"]
   });
 
@@ -38,7 +38,7 @@ export default function SearchForm() {
     setLocation(`/search?${params.toString()}`);
   };
 
-  if (isLoading) {
+  if (!airports) {
     return <div>Caricamento aeroporti...</div>;
   }
 
@@ -51,12 +51,15 @@ export default function SearchForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Aeroporto di partenza</FormLabel>
-              <Select onValueChange={field.onChange}>
+              <Select 
+                onValueChange={(value) => field.onChange(parseInt(value))}
+                value={field.value ? field.value.toString() : undefined}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleziona aeroporto" />
                 </SelectTrigger>
                 <SelectContent>
-                  {airports?.map((airport) => (
+                  {airports.map((airport) => (
                     <SelectItem key={airport.id} value={airport.id.toString()}>
                       {airport.city} ({airport.code})
                     </SelectItem>
@@ -84,7 +87,7 @@ export default function SearchForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={new Date(field.value)}
+                      selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => field.onChange(date?.toISOString())}
                       disabled={(date) => date < new Date()}
                     />
@@ -110,9 +113,12 @@ export default function SearchForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={new Date(field.value)}
+                      selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => field.onChange(date?.toISOString())}
-                      disabled={(date) => date < new Date(form.getValues("startDate"))}
+                      disabled={(date) => {
+                        const startDate = form.getValues("startDate");
+                        return date < (startDate ? new Date(startDate) : new Date());
+                      }}
                     />
                   </PopoverContent>
                 </Popover>
@@ -128,7 +134,11 @@ export default function SearchForm() {
             <FormItem>
               <FormLabel>Prezzo massimo (€)</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input 
+                  type="number" 
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                />
               </FormControl>
             </FormItem>
           )}
