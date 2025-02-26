@@ -58,7 +58,7 @@ export default function SearchForm() {
                 <SelectTrigger>
                   <SelectValue placeholder="Seleziona aeroporto" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[300px] overflow-y-auto">
                   {airports.map((airport) => (
                     <SelectItem key={airport.id} value={airport.id.toString()}>
                       {airport.city} ({airport.code})
