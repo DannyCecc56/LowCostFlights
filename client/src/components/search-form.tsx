@@ -22,8 +22,8 @@ export default function SearchForm() {
     resolver: zodResolver(searchFlightsSchema),
     defaultValues: {
       departureAirportId: 0,
-      startDate: "",
-      endDate: "",
+      departureDate: "",
+      returnDate: undefined,
       maxPrice: undefined
     }
   });
@@ -31,8 +31,8 @@ export default function SearchForm() {
   const onSubmit = (data: any) => {
     const params = new URLSearchParams({
       departureAirportId: data.departureAirportId.toString(),
-      startDate: data.startDate,
-      endDate: data.endDate,
+      departureDate: data.departureDate,
+      ...(data.returnDate && { returnDate: data.returnDate }),
       ...(data.maxPrice && { maxPrice: data.maxPrice.toString() })
     });
     setLocation(`/search?${params.toString()}`);
@@ -90,7 +90,7 @@ export default function SearchForm() {
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="startDate"
+            name="departureDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Data partenza</FormLabel>
@@ -116,10 +116,10 @@ export default function SearchForm() {
 
           <FormField
             control={form.control}
-            name="endDate"
+            name="returnDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data ritorno</FormLabel>
+                <FormLabel>Data ritorno (opzionale)</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -133,8 +133,8 @@ export default function SearchForm() {
                       selected={field.value ? new Date(field.value) : undefined}
                       onSelect={(date) => field.onChange(date?.toISOString())}
                       disabled={(date) => {
-                        const startDate = form.getValues("startDate");
-                        return date < (startDate ? new Date(startDate) : new Date());
+                        const departureDate = form.getValues("departureDate");
+                        return date < (departureDate ? new Date(departureDate) : new Date());
                       }}
                     />
                   </PopoverContent>

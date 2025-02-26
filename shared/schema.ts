@@ -38,8 +38,8 @@ export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
 export const searchFlightsSchema = z.object({
   departureAirportId: z.number(),
-  startDate: z.string(),
-  endDate: z.string(),
+  departureDate: z.string(),
+  returnDate: z.string().optional(),
   maxPrice: z.number().optional(),
 });
 

@@ -51,15 +51,34 @@ export class MemStorage implements IStorage {
     }
 
     try {
-      const amadeusFlights = await searchFlights({
-        originLocationCode: departureAirport.code,
-        destinationLocationCode: "", // Cerchiamo voli per tutte le destinazioni
-        departureDate: new Date(params.startDate).toISOString().split('T')[0],
-        adults: 1,
-        max: 20
-      });
+      const searchPromises = [
+        // Ricerca voli di andata
+        searchFlights({
+          originLocationCode: departureAirport.code,
+          destinationLocationCode: "", // Cerchiamo voli per tutte le destinazioni
+          departureDate: new Date(params.departureDate).toISOString().split('T')[0],
+          adults: 1,
+          max: 20
+        })
+      ];
 
-      return amadeusFlights.map((offer, index) => {
+      // Se è specificata una data di ritorno, aggiungi la ricerca dei voli di ritorno
+      if (params.returnDate) {
+        searchPromises.push(
+          searchFlights({
+            originLocationCode: "", // Cerchiamo da tutte le origini
+            destinationLocationCode: departureAirport.code, // Verso l'aeroporto di partenza originale
+            departureDate: new Date(params.returnDate).toISOString().split('T')[0],
+            adults: 1,
+            max: 20
+          })
+        );
+      }
+
+      const [departureFlights, ...returnFlights] = await Promise.all(searchPromises);
+
+      // Converti i risultati nel formato Flight
+      const flights = departureFlights.map((offer, index) => {
         const segment = offer.itineraries[0].segments[0];
         return {
           id: index + 1,
@@ -72,6 +91,26 @@ export class MemStorage implements IStorage {
           flightNumber: `${segment.carrierCode}${segment.number}`
         };
       });
+
+      // Aggiungi i voli di ritorno se presenti
+      if (returnFlights.length > 0) {
+        const returnFlightResults = returnFlights[0].map((offer, index) => {
+          const segment = offer.itineraries[0].segments[0];
+          return {
+            id: flights.length + index + 1,
+            departureAirportId: this.getAirportIdByCode(segment.departure.iataCode),
+            arrivalAirportId: params.departureAirportId,
+            departureTime: new Date(segment.departure.at),
+            arrivalTime: new Date(segment.arrival.at),
+            price: parseFloat(offer.price.total),
+            airline: segment.carrierCode,
+            flightNumber: `${segment.carrierCode}${segment.number}`
+          };
+        });
+        flights.push(...returnFlightResults);
+      }
+
+      return flights;
     } catch (error) {
       console.error('Errore nella ricerca dei voli:', error);
       return [];
