@@ -88,15 +88,35 @@ export async function searchFlights(params: {
   }
 }
 
-export async function getAirports(keyword: string): Promise<any[]> {
-  try {
-    const response = await amadeus.referenceData.locations.get({
-      keyword,
-      subType: Amadeus.location.AIRPORT,
-      countryCode: 'IT'
-    });
+// Lista degli aeroporti italiani principali
+const ITALIAN_AIRPORTS = [
+  "Roma", "Milano", "Venezia", "Napoli", "Catania", "Palermo", 
+  "Bologna", "Torino", "Bari", "Cagliari", "Pisa", "Verona",
+  "Firenze", "Genova", "Trieste", "Lamezia Terme", "Alghero",
+  "Brindisi", "Pescara", "Ancona"
+];
 
-    return response.data;
+export async function getAirports(): Promise<any[]> {
+  try {
+    const allAirports = [];
+
+    for (const city of ITALIAN_AIRPORTS) {
+      try {
+        const response = await amadeus.referenceData.locations.get({
+          keyword: city,
+          subType: "AIRPORT",
+          countryCode: 'IT'
+        });
+
+        if (response.data && response.data.length > 0) {
+          allAirports.push(...response.data);
+        }
+      } catch (error) {
+        console.error(`Errore nel recupero dell'aeroporto di ${city}:`, error);
+      }
+    }
+
+    return allAirports;
   } catch (error) {
     console.error('Errore nel recupero degli aeroporti:', error);
     throw new Error('Impossibile recuperare la lista degli aeroporti');

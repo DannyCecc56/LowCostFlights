@@ -23,19 +23,14 @@ export class MemStorage implements IStorage {
 
   private async initializeAirports() {
     try {
-      // Inizializza con i principali aeroporti italiani
-      const cities = ["Roma", "Milano", "Venezia", "Napoli", "Catania"];
-      for (const city of cities) {
-        const amadeusAirports = await getAmadeusAirports(city);
-        if (amadeusAirports.length > 0) {
-          const airport = amadeusAirports[0];
-          this.airports.set(this.currentId, {
-            id: this.currentId++,
-            code: airport.iataCode,
-            name: airport.name,
-            city: airport.address.cityName
-          });
-        }
+      const amadeusAirports = await getAmadeusAirports();
+      for (const airport of amadeusAirports) {
+        this.airports.set(this.currentId, {
+          id: this.currentId++,
+          code: airport.iataCode,
+          name: airport.name,
+          city: airport.address.cityName
+        });
       }
     } catch (error) {
       console.error('Errore nell\'inizializzazione degli aeroporti:', error);
@@ -69,7 +64,7 @@ export class MemStorage implements IStorage {
         return {
           id: index + 1,
           departureAirportId: params.departureAirportId,
-          arrivalAirportId: 0, // Sarà gestito dal frontend
+          arrivalAirportId: this.getAirportIdByCode(segment.arrival.iataCode),
           departureTime: new Date(segment.departure.at),
           arrivalTime: new Date(segment.arrival.at),
           price: parseFloat(offer.price.total),
@@ -81,6 +76,11 @@ export class MemStorage implements IStorage {
       console.error('Errore nella ricerca dei voli:', error);
       return [];
     }
+  }
+
+  private getAirportIdByCode(code: string): number {
+    const airport = Array.from(this.airports.values()).find(a => a.code === code);
+    return airport ? airport.id : 0;
   }
 
   async getFlight(id: number): Promise<Flight | undefined> {
