@@ -62,25 +62,27 @@ export default function SearchForm() {
                   <SelectValue placeholder="Seleziona aeroporto" />
                 </SelectTrigger>
                 <SelectContent 
-                  className="max-h-[300px] w-[400px] overflow-y-auto"
+                  className="max-h-[300px] w-[400px]"
                   position="popper"
                   side="bottom"
                   align="start"
                 >
-                  {sortedAirports.map((airport) => (
-                    <SelectItem 
-                      key={airport.id} 
-                      value={airport.id.toString()}
-                      className="py-2 px-4 hover:bg-accent cursor-pointer"
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium">{airport.city}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {airport.name} ({airport.code})
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  <div className="overflow-y-auto max-h-[300px]">
+                    {sortedAirports.map((airport) => (
+                      <SelectItem 
+                        key={airport.id} 
+                        value={airport.id.toString()}
+                        className="py-2 px-4 hover:bg-accent cursor-pointer"
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">{airport.city}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {airport.name} ({airport.code})
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </div>
                 </SelectContent>
               </Select>
             </FormItem>
@@ -93,7 +95,7 @@ export default function SearchForm() {
             name="departureDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data partenza</FormLabel>
+                <FormLabel>Data inizio ricerca</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -119,7 +121,7 @@ export default function SearchForm() {
             name="returnDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data ritorno (opzionale)</FormLabel>
+                <FormLabel>Data fine ricerca</FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="w-full justify-start text-left font-normal">
