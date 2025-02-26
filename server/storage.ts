@@ -1,5 +1,6 @@
 import { Airport, Flight, Booking, InsertBooking, SearchFlightsParams } from "@shared/schema";
 import { nanoid } from "nanoid";
+import { searchFlights, getAirports as getAmadeusAirports } from "./services/amadeus";
 
 export interface IStorage {
   getAirports(): Promise<Airport[]>;
@@ -10,52 +11,34 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private airports: Map<number, Airport>;
-  private flights: Map<number, Flight>;
   private bookings: Map<number, Booking>;
   private currentId: number;
 
   constructor() {
     this.airports = new Map();
-    this.flights = new Map();
     this.bookings = new Map();
     this.currentId = 1;
-    this.initializeData();
+    this.initializeAirports();
   }
 
-  private initializeData() {
-    const airports: Airport[] = [
-      { id: 1, code: "FCO", name: "Aeroporto Leonardo da Vinci", city: "Roma" },
-      { id: 2, code: "MXP", name: "Aeroporto di Milano-Malpensa", city: "Milano" },
-      { id: 3, code: "VCE", name: "Aeroporto Marco Polo", city: "Venezia" },
-      { id: 4, code: "NAP", name: "Aeroporto di Napoli", city: "Napoli" },
-      { id: 5, code: "CTA", name: "Aeroporto di Catania", city: "Catania" }
-    ];
-
-    airports.forEach(airport => this.airports.set(airport.id, airport));
-
-    // Generate mock flights
-    const airlines = ["Alitalia", "Ryanair", "EasyJet", "Wizz Air"];
-    const now = new Date();
-    
-    for (let i = 1; i <= 50; i++) {
-      const depAirport = airports[Math.floor(Math.random() * airports.length)];
-      let arrAirport;
-      do {
-        arrAirport = airports[Math.floor(Math.random() * airports.length)];
-      } while (arrAirport.id === depAirport.id);
-
-      const depTime = new Date(now.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000);
-      const flight: Flight = {
-        id: i,
-        departureAirportId: depAirport.id,
-        arrivalAirportId: arrAirport.id,
-        departureTime: depTime,
-        arrivalTime: new Date(depTime.getTime() + 2 * 60 * 60 * 1000),
-        price: Math.floor(Math.random() * 200) + 50,
-        airline: airlines[Math.floor(Math.random() * airlines.length)],
-        flightNumber: `${airlines[0].substring(0, 2)}${Math.floor(Math.random() * 1000)}`
-      };
-      this.flights.set(flight.id, flight);
+  private async initializeAirports() {
+    try {
+      // Inizializza con i principali aeroporti italiani
+      const cities = ["Roma", "Milano", "Venezia", "Napoli", "Catania"];
+      for (const city of cities) {
+        const amadeusAirports = await getAmadeusAirports(city);
+        if (amadeusAirports.length > 0) {
+          const airport = amadeusAirports[0];
+          this.airports.set(this.currentId, {
+            id: this.currentId++,
+            code: airport.iataCode,
+            name: airport.name,
+            city: airport.address.cityName
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Errore nell\'inizializzazione degli aeroporti:', error);
     }
   }
 
@@ -64,19 +47,45 @@ export class MemStorage implements IStorage {
   }
 
   async searchFlights(params: SearchFlightsParams): Promise<Flight[]> {
-    const startDate = new Date(params.startDate);
-    const endDate = new Date(params.endDate);
+    const departureAirport = Array.from(this.airports.values()).find(
+      airport => airport.id === params.departureAirportId
+    );
 
-    return Array.from(this.flights.values()).filter(flight => {
-      const matchesAirport = flight.departureAirportId === params.departureAirportId;
-      const matchesDate = flight.departureTime >= startDate && flight.departureTime <= endDate;
-      const matchesPrice = !params.maxPrice || flight.price <= params.maxPrice;
-      return matchesAirport && matchesDate && matchesPrice;
-    });
+    if (!departureAirport) {
+      throw new Error("Aeroporto di partenza non valido");
+    }
+
+    try {
+      const amadeusFlights = await searchFlights({
+        originLocationCode: departureAirport.code,
+        destinationLocationCode: "", // Cerchiamo voli per tutte le destinazioni
+        departureDate: new Date(params.startDate).toISOString().split('T')[0],
+        adults: 1,
+        max: 20
+      });
+
+      return amadeusFlights.map((offer, index) => {
+        const segment = offer.itineraries[0].segments[0];
+        return {
+          id: index + 1,
+          departureAirportId: params.departureAirportId,
+          arrivalAirportId: 0, // Sarà gestito dal frontend
+          departureTime: new Date(segment.departure.at),
+          arrivalTime: new Date(segment.arrival.at),
+          price: parseFloat(offer.price.total),
+          airline: segment.carrierCode,
+          flightNumber: `${segment.carrierCode}${segment.number}`
+        };
+      });
+    } catch (error) {
+      console.error('Errore nella ricerca dei voli:', error);
+      return [];
+    }
   }
 
   async getFlight(id: number): Promise<Flight | undefined> {
-    return this.flights.get(id);
+    // Implementazione da aggiornare con dati reali
+    return undefined;
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
