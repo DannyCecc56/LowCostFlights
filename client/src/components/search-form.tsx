@@ -42,6 +42,9 @@ export default function SearchForm() {
     return <div>Caricamento aeroporti...</div>;
   }
 
+  // Ordina gli aeroporti per città
+  const sortedAirports = [...airports].sort((a, b) => a.city.localeCompare(b.city));
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -49,19 +52,33 @@ export default function SearchForm() {
           control={form.control}
           name="departureAirportId"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="relative">
               <FormLabel>Aeroporto di partenza</FormLabel>
               <Select 
                 onValueChange={(value) => field.onChange(parseInt(value))}
                 value={field.value ? field.value.toString() : undefined}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleziona aeroporto" />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px] overflow-y-auto">
-                  {airports.map((airport) => (
-                    <SelectItem key={airport.id} value={airport.id.toString()}>
-                      {airport.city} ({airport.code})
+                <SelectContent 
+                  className="max-h-[300px] w-[400px] overflow-y-auto"
+                  position="popper"
+                  side="bottom"
+                  align="start"
+                >
+                  {sortedAirports.map((airport) => (
+                    <SelectItem 
+                      key={airport.id} 
+                      value={airport.id.toString()}
+                      className="py-2 px-4 hover:bg-accent cursor-pointer"
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-medium">{airport.city}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {airport.name} ({airport.code})
+                        </span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
