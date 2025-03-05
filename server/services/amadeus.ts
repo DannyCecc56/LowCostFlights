@@ -127,13 +127,22 @@ const ITALIAN_AIRPORTS = [
   "Brescia Montichiari"
 ];
 
+// Funzione per aggiungere un ritardo
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function getAirports(): Promise<any[]> {
   try {
     const allAirports = [];
     const processedCodes = new Set(); // Per evitare duplicati
+    
+    // Riduciamo drasticamente il numero di aeroporti per evitare limiti API
+    const limitedAirports = ITALIAN_AIRPORTS.slice(0, 3);
 
-    for (const city of ITALIAN_AIRPORTS) {
+    for (const city of limitedAirports) {
       try {
+        // Aggiungiamo un ritardo di 2 secondi tra le richieste
+        await delay(2000);
+        
         const response = await amadeus.referenceData.locations.get({
           keyword: city,
           subType: "AIRPORT",
