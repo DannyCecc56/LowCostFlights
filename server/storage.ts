@@ -140,3 +140,101 @@ export class MemStorage implements IStorage {
 }
 
 export const storage = new MemStorage();
+import { nanoid } from 'nanoid';
+import { getAirports, searchFlights } from './services/amadeus';
+import { InsertBooking, Booking, Airport, Flight, SearchFlightsParams } from '@shared/schema';
+
+class MemStorage {
+  private airports = new Map<number, Airport>();
+  private flights = new Map<number, Flight>();
+  private bookings = new Map<number, Booking>();
+  private currentId = 1;
+  private airportsLoaded = false;
+
+  async getAirports(): Promise<Airport[]> {
+    try {
+      if (!this.airportsLoaded) {
+        const amadeusAirports = await getAirports();
+        
+        // Trasforma i dati Amadeus in formato Airport
+        amadeusAirports.forEach((airport: any, index: number) => {
+          const airportData: Airport = {
+            id: index + 1,
+            name: airport.name,
+            code: airport.iataCode,
+            city: airport.address.cityName,
+            country: airport.address.countryName,
+            countryCode: airport.address.countryCode
+          };
+          this.airports.set(airportData.id, airportData);
+        });
+        
+        this.airportsLoaded = true;
+      }
+      
+      return Array.from(this.airports.values());
+    } catch (error) {
+      console.error('Errore nel recupero degli aeroporti:', error);
+      return [];
+    }
+  }
+
+  async searchFlights(params: SearchFlightsParams): Promise<Flight[]> {
+    try {
+      const searchResults = await searchFlights(params);
+      
+      // Trasforma i risultati nel formato Flight
+      const flights: Flight[] = searchResults.map((flight: any) => {
+        return {
+          id: flight.id,
+          departureAirport: flight.departureAirport,
+          departureAirportCode: flight.departureIataCode,
+          arrivalAirport: flight.arrivalAirport,
+          arrivalAirportCode: flight.arrivalIataCode,
+          departureDateTime: flight.departureDate,
+          arrivalDateTime: flight.arrivalDate,
+          price: flight.price,
+          airline: flight.airline,
+          flightNumber: flight.flightNumber
+        };
+      });
+      
+      return flights;
+    } catch (error) {
+      console.error('Errore nella ricerca dei voli:', error);
+      return [];
+    }
+  }
+
+  async getFlight(id: number): Promise<Flight | undefined> {
+    // Simuliamo un volo di esempio
+    if (id > 0) {
+      return {
+        id: id,
+        departureAirport: "ROMA FIUMICINO",
+        departureAirportCode: "FCO",
+        arrivalAirport: "MILANO MALPENSA",
+        arrivalAirportCode: "MXP",
+        departureDateTime: "2023-12-01T08:30:00",
+        arrivalDateTime: "2023-12-01T09:45:00",
+        price: 89.99,
+        airline: "Alitalia",
+        flightNumber: "AZ1234"
+      };
+    }
+    return undefined;
+  }
+
+  async createBooking(booking: InsertBooking): Promise<Booking> {
+    const id = this.currentId++;
+    const newBooking: Booking = {
+      ...booking,
+      id,
+      bookingReference: nanoid(8).toUpperCase()
+    };
+    this.bookings.set(id, newBooking);
+    return newBooking;
+  }
+}
+
+export const storage = new MemStorage();
