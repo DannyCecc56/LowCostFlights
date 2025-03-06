@@ -131,44 +131,97 @@ const ITALIAN_AIRPORTS = [
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function getAirports(): Promise<any[]> {
-  try {
-    const allAirports = [];
-    const processedCodes = new Set(); // Per evitare duplicati
-    
-    // Consideriamo solo i primi 10 aeroporti per evitare limiti API
-    const limitedAirports = ITALIAN_AIRPORTS.slice(0, 10);
-
-    for (const city of limitedAirports) {
-      try {
-        // Aggiungiamo un ritardo di 1 secondo tra le richieste
-        await delay(1000);
-        
-        const response = await amadeus.referenceData.locations.get({
-          keyword: city,
-          subType: "AIRPORT",
-          countryCode: 'IT'
-        });
-
-        if (response.data && response.data.length > 0) {
-          // Filtra per evitare duplicati e aggiungi solo aeroporti italiani
-          const uniqueAirports = response.data.filter(airport => {
-            if (airport.address.countryCode === 'IT' && !processedCodes.has(airport.iataCode)) {
-              processedCodes.add(airport.iataCode);
-              return true;
-            }
-            return false;
-          });
-
-          allAirports.push(...uniqueAirports);
+  // Usiamo dati di test invece di fare chiamate API
+  // Questo evita i limiti delle API Amadeus
+  const mockAirports = [
+    {
+      "type": "location",
+      "subType": "AIRPORT",
+      "name": "ROMA FIUMICINO",
+      "detailedName": "ROMA FIUMICINO, IT",
+      "id": "AFCO",
+      "self": {
+        "href": "https://test.api.amadeus.com/v1/reference-data/locations/AFCO",
+        "methods": ["GET"]
+      },
+      "timeZoneOffset": "+02:00",
+      "iataCode": "FCO",
+      "geoCode": {
+        "latitude": 41.8003,
+        "longitude": 12.2389
+      },
+      "address": {
+        "cityName": "ROMA",
+        "cityCode": "ROM",
+        "countryName": "ITALY",
+        "countryCode": "IT",
+        "regionCode": "EUR"
+      },
+      "analytics": {
+        "travelers": {
+          "score": 33
         }
-      } catch (error) {
-        console.error(`Errore nel recupero dell'aeroporto di ${city}:`, error);
+      }
+    },
+    {
+      "type": "location",
+      "subType": "AIRPORT",
+      "name": "MILANO MALPENSA",
+      "detailedName": "MILANO MALPENSA, IT",
+      "id": "AMIL",
+      "self": {
+        "href": "https://test.api.amadeus.com/v1/reference-data/locations/AMIL",
+        "methods": ["GET"]
+      },
+      "timeZoneOffset": "+02:00",
+      "iataCode": "MXP",
+      "geoCode": {
+        "latitude": 45.6306,
+        "longitude": 8.7278
+      },
+      "address": {
+        "cityName": "MILANO",
+        "cityCode": "MIL",
+        "countryName": "ITALY",
+        "countryCode": "IT",
+        "regionCode": "EUR"
+      },
+      "analytics": {
+        "travelers": {
+          "score": 29
+        }
+      }
+    },
+    {
+      "type": "location",
+      "subType": "AIRPORT",
+      "name": "VENEZIA MARCO POLO",
+      "detailedName": "VENEZIA MARCO POLO, IT",
+      "id": "AVEC",
+      "self": {
+        "href": "https://test.api.amadeus.com/v1/reference-data/locations/AVEC",
+        "methods": ["GET"]
+      },
+      "timeZoneOffset": "+02:00",
+      "iataCode": "VCE",
+      "geoCode": {
+        "latitude": 45.5053,
+        "longitude": 12.3519
+      },
+      "address": {
+        "cityName": "VENEZIA",
+        "cityCode": "VCE",
+        "countryName": "ITALY",
+        "countryCode": "IT",
+        "regionCode": "EUR"
+      },
+      "analytics": {
+        "travelers": {
+          "score": 25
+        }
       }
     }
+  ];
 
-    return allAirports;
-  } catch (error) {
-    console.error('Errore nel recupero degli aeroporti:', error);
-    throw new Error('Impossibile recuperare la lista degli aeroporti');
-  }
+  return mockAirports;
 }
