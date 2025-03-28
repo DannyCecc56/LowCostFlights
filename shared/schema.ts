@@ -37,10 +37,16 @@ export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
 export const searchFlightsSchema = z.object({
-  departureAirportId: z.number(),
-  departureDate: z.string(),
+  departureAirportId: z.number({
+    required_error: "Seleziona un aeroporto di partenza",
+    invalid_type_error: "L'aeroporto deve essere selezionato dalla lista"
+  }),
+  departureDate: z.string({
+    required_error: "La data di partenza è obbligatoria",
+    invalid_type_error: "Formato data non valido"
+  }),
   returnDate: z.string().optional(),
-  maxPrice: z.number().optional(),
+  maxPrice: z.number().optional().or(z.nan().transform(() => undefined)),
 });
 
 export type SearchFlightsParams = z.infer<typeof searchFlightsSchema>;

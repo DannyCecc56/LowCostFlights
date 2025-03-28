@@ -19,17 +19,31 @@ export default function SearchForm() {
     queryKey: ["/api/airports"]
   });
 
-  const form = useForm({
+  const form = useForm<{
+    departureAirportId: number | undefined;
+    departureDate: string;
+    returnDate?: string;
+    maxPrice?: number;
+  }>({
     resolver: zodResolver(searchFlightsSchema),
     defaultValues: {
-      departureAirportId: 0,
+      departureAirportId: undefined,
       departureDate: "",
       returnDate: undefined,
       maxPrice: undefined
     }
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: {
+    departureAirportId: number | undefined;
+    departureDate: string;
+    returnDate?: string;
+    maxPrice?: number;
+  }) => {
+    if (!data.departureAirportId || !data.departureDate) {
+      return; // Non dovrebbe mai accadere grazie alla validazione
+    }
+    
     const params = new URLSearchParams({
       departureAirportId: data.departureAirportId.toString(),
       departureDate: data.departureDate,
@@ -57,7 +71,7 @@ export default function SearchForm() {
               <FormLabel>Aeroporto di partenza</FormLabel>
               <Select 
                 onValueChange={(value) => field.onChange(parseInt(value))}
-                value={field.value ? field.value.toString() : undefined}
+                value={field.value !== undefined ? field.value.toString() : ""}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleziona aeroporto" />
