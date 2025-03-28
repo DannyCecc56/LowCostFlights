@@ -15,7 +15,6 @@ export async function registerRoutes(app: Express) {
     try {
       console.log("Query params ricevuti:", req.query);
       
-      // Converti esplicitamente i parametri
       const departureAirportId = Number(req.query.departureAirportId);
       const params = {
         departureAirportId,
@@ -27,11 +26,24 @@ export async function registerRoutes(app: Express) {
       console.log("Parametri pre-validazione:", params);
       const validatedParams = searchFlightsSchema.parse(params);
       console.log("Parametri validati:", validatedParams);
-      const flights = await storage.searchFlights(params);
-      res.json(flights);
-    } catch (error) {
-      console.error("Errore nella validazione dei parametri:", error);
-      res.status(400).json({ error: "Parametri di ricerca non validi" });
+      
+      try {
+        const flights = await storage.searchFlights(validatedParams);
+        console.log("Voli trovati:", flights?.length || 0);
+        res.json(flights);
+      } catch (searchError) {
+        console.error("Errore nella ricerca dei voli:", searchError);
+        res.status(500).json({ 
+          error: "Errore durante la ricerca dei voli",
+          details: searchError instanceof Error ? searchError.message : 'Errore sconosciuto'
+        });
+      }
+    } catch (validationError) {
+      console.error("Errore nella validazione dei parametri:", validationError);
+      res.status(400).json({ 
+        error: "Parametri di ricerca non validi",
+        details: validationError instanceof Error ? validationError.message : 'Errore di validazione'
+      });
     }
   });
 
