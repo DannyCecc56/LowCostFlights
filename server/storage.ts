@@ -1,6 +1,7 @@
 import { Airport, Flight, Booking, InsertBooking, SearchFlightsParams } from "@shared/schema";
 import { nanoid } from "nanoid";
-import { searchFlights, getAirports as getAmadeusAirports } from "./services/amadeus";
+import { searchFlights as searchAmadeusFlights, getAirports as getAmadeusAirports } from "./services/amadeus";
+import { searchFlights as searchAviationStackFlights, convertToAppFlight } from "./services/aviationstack";
 
 export interface IStorage {
   getAirports(): Promise<Airport[]>;
@@ -42,6 +43,8 @@ export class MemStorage implements IStorage {
   }
 
   async searchFlights(params: SearchFlightsParams): Promise<Flight[]> {
+    console.log("Ricerca voli con parametri:", params);
+    
     const departureAirport = Array.from(this.airports.values()).find(
       airport => airport.id === params.departureAirportId
     );
@@ -50,10 +53,70 @@ export class MemStorage implements IStorage {
       throw new Error("Aeroporto di partenza non valido");
     }
 
+    console.log("Aeroporto di partenza:", departureAirport);
+
     try {
+      // Prima proviamo con AviationStack
+      try {
+        console.log("Tentativo di ricerca con AviationStack...");
+        const aviationStackFlights = await searchAviationStackFlights({
+          departureIata: departureAirport.code,
+          date: params.departureDate
+        });
+        
+        console.log(`AviationStack ha trovato ${aviationStackFlights.length} voli`);
+        
+        if (aviationStackFlights.length > 0) {
+          // Abbiamo risultati da AviationStack
+          const flights: Flight[] = [];
+          let flightId = 1;
+          
+          // Converti i voli di andata in formato Flight
+          for (const avFlight of aviationStackFlights) {
+            const arrivalAirportId = this.getAirportIdByCode(avFlight.arrival?.iata);
+            if (arrivalAirportId > 0) { // Solo se abbiamo l'aeroporto di arrivo nel nostro sistema
+              flights.push(convertToAppFlight(avFlight, params.departureAirportId, arrivalAirportId, flightId++));
+            }
+          }
+          
+          // Se abbiamo voli di ritorno, cercali e aggiungili
+          if (params.returnDate && flights.length > 0) {
+            // Aggiungiamo alcuni voli di ritorno (per ora semplificati)
+            // In una versione completa, dovremmo fare un'altra chiamata API
+            const returnFlights = aviationStackFlights
+              .slice(0, 5) // Prendiamo i primi 5 voli per semplicità
+              .map((avFlight, idx) => {
+                const departure = avFlight.arrival;
+                const arrival = avFlight.departure;
+                
+                // Creiamo un volo di ritorno invertendo partenza e arrivo
+                return {
+                  id: flightId++,
+                  departureAirportId: this.getAirportIdByCode(departure.iata),
+                  arrivalAirportId: params.departureAirportId,
+                  departureTime: new Date(params.returnDate || ""),
+                  arrivalTime: new Date(new Date(params.returnDate || "").getTime() + 3600000 * 2), // +2 ore
+                  price: (Math.floor(Math.random() * 150) + 50).toFixed(2), // Prezzo casuale tra 50 e 200
+                  airline: avFlight.airline.name,
+                  flightNumber: avFlight.flight.iata || `${avFlight.airline.iata}${avFlight.flight.number}`
+                } as Flight;
+              })
+              .filter(flight => flight.departureAirportId > 0); // Solo aeroporti validi
+              
+            flights.push(...returnFlights);
+          }
+          
+          return flights;
+        }
+      } catch (aviationError) {
+        console.error("Errore con AviationStack, tentativo con Amadeus:", aviationError);
+      }
+      
+      // Fallback a Amadeus se AviationStack fallisce o non ha risultati
+      console.log("Tentativo ricerca con Amadeus...");
       const searchPromises = [
         // Ricerca voli di andata
-        searchFlights({
+        searchAmadeusFlights({
           originLocationCode: departureAirport.code,
           destinationLocationCode: "", // Cerchiamo voli per tutte le destinazioni
           departureDate: new Date(params.departureDate).toISOString().split('T')[0],
@@ -65,7 +128,7 @@ export class MemStorage implements IStorage {
       // Se è specificata una data di ritorno, aggiungi la ricerca dei voli di ritorno
       if (params.returnDate) {
         searchPromises.push(
-          searchFlights({
+          searchAmadeusFlights({
             originLocationCode: "", // Cerchiamo da tutte le origini
             destinationLocationCode: departureAirport.code, // Verso l'aeroporto di partenza originale
             departureDate: new Date(params.returnDate).toISOString().split('T')[0],
@@ -86,7 +149,7 @@ export class MemStorage implements IStorage {
           arrivalAirportId: this.getAirportIdByCode(segment.arrival.iataCode),
           departureTime: new Date(segment.departure.at),
           arrivalTime: new Date(segment.arrival.at),
-          price: parseFloat(offer.price.total),
+          price: offer.price.total.toString(), // Assicuriamoci che sia una stringa
           airline: segment.carrierCode,
           flightNumber: `${segment.carrierCode}${segment.number}`
         };
@@ -102,7 +165,7 @@ export class MemStorage implements IStorage {
             arrivalAirportId: params.departureAirportId,
             departureTime: new Date(segment.departure.at),
             arrivalTime: new Date(segment.arrival.at),
-            price: parseFloat(offer.price.total),
+            price: offer.price.total.toString(), // Assicuriamoci che sia una stringa
             airline: segment.carrierCode,
             flightNumber: `${segment.carrierCode}${segment.number}`
           };

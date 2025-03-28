@@ -13,16 +13,20 @@ export async function registerRoutes(app: Express) {
 
   app.get("/api/flights/search", async (req, res) => {
     try {
+      console.log("Query params ricevuti:", req.query);
+      
       const params = searchFlightsSchema.parse({
         departureAirportId: parseInt(req.query.departureAirportId as string),
-        startDate: req.query.startDate,
-        endDate: req.query.endDate,
+        departureDate: req.query.departureDate as string,
+        returnDate: req.query.returnDate as string | undefined,
         maxPrice: req.query.maxPrice ? parseInt(req.query.maxPrice as string) : undefined
       });
 
+      console.log("Parametri validati:", params);
       const flights = await storage.searchFlights(params);
       res.json(flights);
     } catch (error) {
+      console.error("Errore nella validazione dei parametri:", error);
       res.status(400).json({ error: "Parametri di ricerca non validi" });
     }
   });
