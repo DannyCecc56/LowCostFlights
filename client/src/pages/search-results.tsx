@@ -9,10 +9,19 @@ import type { Flight, Airport } from "@shared/schema";
 export default function SearchResults() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
-
-  const { data: flights, isLoading: isLoadingFlights } = useQuery<Flight[]>({
+  
+  // Per debug - mostriamo i parametri che stiamo inviando
+  console.log("Parametri di ricerca:", Object.fromEntries(searchParams.entries()));
+  
+  const { data: flights, isLoading: isLoadingFlights, error } = useQuery<Flight[]>({
     queryKey: ["/api/flights/search", searchParams.toString()],
+    retry: false
   });
+  
+  // Mostriamo eventuali errori
+  if (error) {
+    console.error("Errore nella ricerca dei voli:", error);
+  }
 
   const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
     queryKey: ["/api/airports"],
