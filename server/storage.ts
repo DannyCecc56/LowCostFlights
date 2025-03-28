@@ -59,6 +59,11 @@ export class MemStorage implements IStorage {
       );
 
       if (!departureAirport) {
+        throw new Error(`Aeroporto con ID ${params.departureAirportId} non trovato`);
+      }
+      );
+
+      if (!departureAirport) {
         throw new Error("Aeroporto di partenza non valido");
       }
 
