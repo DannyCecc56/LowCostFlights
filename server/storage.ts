@@ -59,27 +59,33 @@ export class MemStorage implements IStorage {
         throw new Error("Aeroporto di partenza non valido");
       }
 
-      // Genera voli di esempio
+      // Genera voli di esempio per più giorni
       const mockFlights: Flight[] = [];
       const basePrice = 150;
+      const daysToGenerate = 3; // Genera voli per 3 giorni
 
-      for (let i = 0; i < 5; i++) {
-        const departureTime = new Date(params.departureDate);
-        departureTime.setHours(8 + i * 3);
+      for (let day = 0; day < daysToGenerate; day++) {
+        for (let i = 0; i < 5; i++) {
+          const departureTime = new Date(params.departureDate);
+          departureTime.setDate(departureTime.getDate() + day);
+          departureTime.setHours(8 + i * 3);
 
-        const arrivalTime = new Date(departureTime);
-        arrivalTime.setHours(arrivalTime.getHours() + 2);
+          const arrivalTime = new Date(departureTime);
+          arrivalTime.setHours(arrivalTime.getHours() + 2);
 
-        mockFlights.push({
-          id: i + 1,
-          departureAirportId: params.departureAirportId,
-          arrivalAirportId: 2,
-          departureTime,
-          arrivalTime,
-          price: (basePrice + (i * 25)).toString(),
-          airline: "ITA Airways",
-          flightNumber: `IT${1000 + i}`
-        });
+          const randomPrice = basePrice + (i * 25) + (Math.random() * 50);
+          
+          mockFlights.push({
+            id: day * 5 + i + 1,
+            departureAirportId: params.departureAirportId,
+            arrivalAirportId: 2,
+            departureTime,
+            arrivalTime,
+            price: Math.round(randomPrice).toString(),
+            airline: "ITA Airways",
+            flightNumber: `IT${1000 + day * 100 + i}`
+          });
+        }
       }
 
       return mockFlights;

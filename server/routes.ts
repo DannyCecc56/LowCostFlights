@@ -15,12 +15,12 @@ export async function registerRoutes(app: Express) {
     try {
       console.log("Query params ricevuti:", req.query);
       
-      const departureAirportId = Number(req.query.departureAirportId);
+      const departureAirportId = parseInt(req.query.departureAirportId as string);
       const params = {
         departureAirportId,
         departureDate: req.query.departureDate as string,
-        returnDate: req.query.returnDate as string || undefined,
-        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined
+        returnDate: req.query.returnDate as string,
+        maxPrice: req.query.maxPrice ? parseInt(req.query.maxPrice as string) : undefined
       };
       
       console.log("Parametri pre-validazione:", params);
