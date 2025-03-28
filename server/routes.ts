@@ -30,12 +30,20 @@ export async function registerRoutes(app: Express) {
       try {
         const flights = await storage.searchFlights(validatedParams);
         console.log("Voli trovati:", flights?.length || 0);
+        
+        if (!flights || flights.length === 0) {
+          return res.status(404).json({ 
+            error: "Nessun volo trovato",
+            details: "Non sono stati trovati voli per i criteri di ricerca specificati"
+          });
+        }
+        
         res.json(flights);
       } catch (searchError) {
         console.error("Errore nella ricerca dei voli:", searchError);
         res.status(500).json({ 
           error: "Errore durante la ricerca dei voli",
-          details: searchError instanceof Error ? searchError.message : 'Errore sconosciuto'
+          details: searchError instanceof Error ? searchError.message : 'Errore nel servizio di ricerca voli'
         });
       }
     } catch (validationError) {
