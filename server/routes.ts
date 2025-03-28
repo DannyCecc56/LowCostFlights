@@ -15,15 +15,18 @@ export async function registerRoutes(app: Express) {
     try {
       console.log("Query params ricevuti:", req.query);
       
-      const departureAirportId = parseInt(req.query.departureAirportId as string);
-      const params = searchFlightsSchema.parse({
+      // Converti esplicitamente i parametri
+      const departureAirportId = Number(req.query.departureAirportId);
+      const params = {
         departureAirportId,
         departureDate: req.query.departureDate as string,
-        returnDate: req.query.returnDate as string,
-        maxPrice: req.query.maxPrice ? parseInt(req.query.maxPrice as string) : undefined
-      });
-
-      console.log("Parametri validati:", params);
+        returnDate: req.query.returnDate as string || undefined,
+        maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined
+      };
+      
+      console.log("Parametri pre-validazione:", params);
+      const validatedParams = searchFlightsSchema.parse(params);
+      console.log("Parametri validati:", validatedParams);
       const flights = await storage.searchFlights(params);
       res.json(flights);
     } catch (error) {
