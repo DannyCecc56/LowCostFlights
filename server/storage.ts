@@ -50,6 +50,9 @@ export class MemStorage implements IStorage {
   async searchFlights(params: SearchFlightsParams): Promise<Flight[]> {
     try {
       console.log("Ricerca voli con parametri:", params);
+      if (!params.departureDate) {
+        throw new Error("Data di partenza mancante");
+      }
 
       const departureAirport = Array.from(this.airports.values()).find(
         airport => airport.id === params.departureAirportId
