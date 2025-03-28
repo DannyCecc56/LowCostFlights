@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { searchFlightsSchema, type Airport } from "@shared/schema";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatDate } from "@/lib/utils/dates";
 import { CalendarIcon } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function SearchForm() {
   const [, setLocation] = useLocation();
@@ -62,17 +63,17 @@ export default function SearchForm() {
                   <SelectValue placeholder="Seleziona aeroporto" />
                 </SelectTrigger>
                 <SelectContent 
-                  className="max-h-[300px] w-[400px]"
+                  className="max-h-[300px] w-full sm:w-[400px]"
                   position="popper"
                   side="bottom"
                   align="start"
                 >
-                  <div className="overflow-y-auto max-h-[300px]">
+                  <ScrollArea className="h-80 rounded-md border-0">
                     {sortedAirports.map((airport) => (
                       <SelectItem 
                         key={airport.id} 
                         value={airport.id.toString()}
-                        className="py-2 px-4 hover:bg-accent cursor-pointer"
+                        className="py-3 px-4 hover:bg-accent cursor-pointer"
                       >
                         <div className="flex flex-col">
                           <span className="font-medium">{airport.city}</span>
@@ -82,14 +83,15 @@ export default function SearchForm() {
                         </div>
                       </SelectItem>
                     ))}
-                  </div>
+                  </ScrollArea>
                 </SelectContent>
               </Select>
+              <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="departureDate"
@@ -112,6 +114,7 @@ export default function SearchForm() {
                     />
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -141,6 +144,7 @@ export default function SearchForm() {
                     />
                   </PopoverContent>
                 </Popover>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -159,6 +163,7 @@ export default function SearchForm() {
                   onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
