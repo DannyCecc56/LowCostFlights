@@ -45,13 +45,13 @@ export default function SearchResults() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
           <strong className="font-bold">Errore! </strong>
-          <span className="block sm:inline">{ERROR_MESSAGES.NO_FLIGHTS}</span>
+          <span className="block sm:inline">Impossibile cercare i voli. Verifica i parametri di ricerca.</span>
         </div>
       )}
 
       {!isLoading && !error && (!flights || flights.length === 0) && (
         <div className="text-center py-8">
-          <p className="text-muted-foreground">{ERROR_MESSAGES.NO_FLIGHTS}</p>
+          <p className="text-muted-foreground">Nessun volo trovato per i criteri selezionati.</p>
         </div>
       )}
 
