@@ -79,9 +79,17 @@ export default function Booking() {
       <Card>
         <CardHeader>
           <h1 className="text-2xl font-bold">Prenota il tuo volo</h1>
-          <p className="text-muted-foreground">
-            {departureAirport?.city} → {arrivalAirport?.city}
-          </p>
+          <div className="space-y-2">
+            <p className="text-muted-foreground">
+              {departureAirport?.city} → {arrivalAirport?.city}
+            </p>
+            <div className="text-sm space-y-1">
+              <p>Volo {flight.flightNumber} - {flight.airline}</p>
+              <p>Partenza: {formatDate(flight.departureTime)} {formatTime(flight.departureTime)}</p>
+              <p>Arrivo: {formatDate(flight.arrivalTime)} {formatTime(flight.arrivalTime)}</p>
+              <p className="font-semibold">Prezzo: €{flight.price}</p>
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent>
