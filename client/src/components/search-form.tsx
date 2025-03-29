@@ -29,7 +29,7 @@ export default function SearchForm() {
     defaultValues: {
       departureAirportId: undefined,
       departureDate: "",
-      returnDate: undefined,
+      returnDate: "",
       maxPrice: undefined
     }
   });
@@ -43,7 +43,7 @@ export default function SearchForm() {
     if (!data.departureAirportId || !data.departureDate) {
       return; // Non dovrebbe mai accadere grazie alla validazione
     }
-    
+
     const params = new URLSearchParams({
       departureAirportId: data.departureAirportId.toString(),
       departureDate: data.departureDate,
