@@ -27,7 +27,7 @@ export default function SearchForm() {
   }>({
     resolver: zodResolver(searchFlightsSchema),
     defaultValues: {
-      departureAirportId: "",
+      departureAirportId: undefined,
       departureDate: "",
       returnDate: "",
       maxPrice: ""
