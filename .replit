@@ -58,3 +58,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx expo start"
+
+[[workflows.workflow]]
+name = "Mobile App Dev"
+author = 40012886
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client/mobile && npx expo start"
