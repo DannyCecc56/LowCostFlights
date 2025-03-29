@@ -13,6 +13,10 @@ export default function SearchResults() {
 
   console.log("Parametri di ricerca:", Object.fromEntries(searchParams.entries()));
 
+  const { data: airports } = useQuery<Airport[]>({
+    queryKey: ["/api/airports"],
+  });
+
   const { data: flights, isLoading, error } = useQuery<Flight[]>({
     queryKey: ["/api/flights/search", searchParams.toString()],
     queryFn: async () => {
@@ -61,7 +65,13 @@ export default function SearchResults() {
       {!isLoading && !error && flights && flights.length > 0 && (
         <div className="space-y-4">
           {flights.map((flight) => (
-            <FlightCard key={flight.id} flight={flight} />
+            <FlightCard 
+              key={flight.id} 
+              flight={flight}
+              departureAirport={airports?.find(a => a.id === flight.departureAirportId)}
+              arrivalAirport={airports?.find(a => a.id === flight.arrivalAirportId)}
+              onBook={() => setLocation(`/booking/${flight.id}`)}
+            />
           ))}
         </div>
       )}
