@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import FlightCard from "@/components/flight-card";
@@ -10,17 +11,30 @@ export default function SearchResults() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   
-  // Per debug - mostriamo i parametri che stiamo inviando
   console.log("Parametri di ricerca:", Object.fromEntries(searchParams.entries()));
   
   const { data: flights, isLoading: isLoadingFlights, error } = useQuery<Flight[]>({
     queryKey: ["/api/flights/search", searchParams.toString()],
     retry: false
   });
+
+  const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
+    queryKey: ["/api/airports"],
+  });
   
-  // Mostriamo eventuali errori
+  if (isLoadingFlights || isLoadingAirports) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-48 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
-    console.error("Errore nella ricerca dei voli:", error);
     return (
       <div className="container mx-auto p-4">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
@@ -31,18 +45,12 @@ export default function SearchResults() {
     );
   }
 
-  const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
-    queryKey: ["/api/airports"],
-  });
-
-  if (isLoadingFlights || isLoadingAirports || !flights || !airports) {
+  if (!flights || !airports) {
     return (
       <div className="container mx-auto p-4">
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-48 w-full" />
-          ))}
-        </div>
+        <p className="text-center text-muted-foreground">
+          Nessun dato disponibile
+        </p>
       </div>
     );
   }
