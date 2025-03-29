@@ -20,7 +20,12 @@ export default function SearchResults() {
   const { data: flights, isLoading, error } = useQuery<Flight[]>({
     queryKey: ["/api/flights/search", searchParams.toString()],
     queryFn: async () => {
-      const response = await fetch(`/api/flights/search?${searchParams.toString()}`);
+      const params = new URLSearchParams(searchParams);
+      const maxPrice = params.get('maxPrice');
+      if (maxPrice) {
+        params.set('maxPrice', maxPrice.toString());
+      }
+      const response = await fetch(`/api/flights/search?${params.toString()}`);
       if (!response.ok) {
         throw new Error("Errore nella ricerca dei voli");
       }
