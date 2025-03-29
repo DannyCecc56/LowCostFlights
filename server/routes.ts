@@ -15,11 +15,18 @@ export async function registerRoutes(app: Express) {
     try {
       console.log("Query params ricevuti:", req.query);
       
+      if (!req.query.departureAirportId) {
+        return res.status(400).json({ 
+          error: "Parametri di ricerca non validi",
+          details: "ID aeroporto mancante"
+        });
+      }
+
       const departureAirportId = parseInt(req.query.departureAirportId as string);
       if (isNaN(departureAirportId)) {
         return res.status(400).json({ 
           error: "Parametri di ricerca non validi",
-          details: "ID aeroporto non valido"
+          details: "ID aeroporto deve essere un numero"
         });
       }
 
@@ -29,6 +36,8 @@ export async function registerRoutes(app: Express) {
         returnDate: req.query.returnDate as string || undefined,
         maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined
       };
+
+      console.log("Parametri elaborati:", params);
       
       console.log("Parametri pre-validazione:", params);
       const validatedParams = searchFlightsSchema.parse(params);

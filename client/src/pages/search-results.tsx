@@ -21,6 +21,14 @@ export default function SearchResults() {
   // Mostriamo eventuali errori
   if (error) {
     console.error("Errore nella ricerca dei voli:", error);
+    return (
+      <div className="container mx-auto p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+          <strong className="font-bold">Errore! </strong>
+          <span className="block sm:inline">Impossibile cercare i voli. Verifica i parametri di ricerca.</span>
+        </div>
+      </div>
+    );
   }
 
   const { data: airports, isLoading: isLoadingAirports } = useQuery<Airport[]>({
