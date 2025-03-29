@@ -106,7 +106,18 @@ export class MemStorage implements IStorage {
   }
 
   async getFlight(id: number): Promise<Flight | undefined> {
-    return undefined;
+    try {
+      const params = {
+        departureAirportId: 1,
+        departureDate: new Date().toISOString(),
+      };
+      
+      const flights = await this.searchFlights(params);
+      return flights.find(flight => flight.id === id);
+    } catch (error) {
+      console.error('Errore nel recupero del volo:', error);
+      return undefined;
+    }
   }
 
   async createBooking(booking: InsertBooking): Promise<Booking> {
