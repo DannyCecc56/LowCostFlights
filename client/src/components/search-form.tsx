@@ -169,7 +169,7 @@ export default function SearchForm() {
           name="maxPrice"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prezzo massimo (€)</FormLabel>
+              <FormLabel>Prezzo massimo (€) (facoltativo)</FormLabel>
               <FormControl>
                 <Input 
                   type="number" 
