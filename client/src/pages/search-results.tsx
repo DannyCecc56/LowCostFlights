@@ -5,7 +5,6 @@ import FlightCard from "@/components/flight-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
-import { ERROR_MESSAGES } from "@/lib/constants";
 import type { Flight, Airport } from "@shared/schema";
 
 export default function SearchResults() {
@@ -20,15 +19,19 @@ export default function SearchResults() {
 
   const { data: flights, isLoading, error } = useQuery<Flight[]>({
     queryKey: ["/api/flights/search", searchParams.toString()],
-    retry: false
+    retry: false,
   });
+
+  const handleBack = () => {
+    setLocation("/");
+  };
 
   return (
     <div className="container mx-auto p-4">
       <Button
         variant="ghost"
         className="mb-6"
-        onClick={() => setLocation("/")}
+        onClick={handleBack}
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Torna alla ricerca
@@ -45,13 +48,19 @@ export default function SearchResults() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
           <strong className="font-bold">Errore! </strong>
-          <span className="block sm:inline">Impossibile cercare i voli. Verifica i parametri di ricerca.</span>
+          <span className="block sm:inline">
+            Si è verificato un errore durante la ricerca dei voli.
+            Riprova più tardi o modifica i parametri di ricerca.
+          </span>
         </div>
       )}
 
       {!isLoading && !error && (!flights || flights.length === 0) && (
         <div className="text-center py-8">
-          <p className="text-muted-foreground">Nessun volo trovato per i criteri selezionati.</p>
+          <p className="text-gray-600">
+            Nessun volo trovato per i criteri selezionati.
+            Prova a modificare i parametri di ricerca.
+          </p>
         </div>
       )}
 
