@@ -63,7 +63,7 @@ export class MemStorage implements IStorage {
       }
 
       // Genera voli di esempio per più giorni
-      const mockFlights: Flight[] = [];
+      let mockFlights: Flight[] = [];
       const basePrice = 150;
       const daysToGenerate = 3; // Genera voli per 3 giorni
 
