@@ -91,6 +91,13 @@ export class MemStorage implements IStorage {
         }
       }
 
+      // Filtra i voli per prezzo massimo se specificato
+      if (params.maxPrice) {
+        mockFlights = mockFlights.filter(flight => 
+          parseFloat(flight.price) <= params.maxPrice!
+        );
+      }
+      
       return mockFlights;
     } catch (error) {
       console.error('Errore nella ricerca dei voli:', error);
