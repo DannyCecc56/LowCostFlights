@@ -13,13 +13,16 @@ export default function SearchResults() {
 
   console.log("Parametri di ricerca:", Object.fromEntries(searchParams.entries()));
 
-  const { data: airports } = useQuery<Airport[]>({
-    queryKey: ["/api/airports"],
-  });
-
   const { data: flights, isLoading, error } = useQuery<Flight[]>({
     queryKey: ["/api/flights/search", searchParams.toString()],
-    retry: false,
+    queryFn: async () => {
+      const response = await fetch(`/api/flights/search?${searchParams.toString()}`);
+      if (!response.ok) {
+        throw new Error("Errore nella ricerca dei voli");
+      }
+      return response.json();
+    },
+    retry: false
   });
 
   const handleBack = () => {
@@ -55,26 +58,20 @@ export default function SearchResults() {
         </div>
       )}
 
+      {!isLoading && !error && flights && flights.length > 0 && (
+        <div className="space-y-4">
+          {flights.map((flight) => (
+            <FlightCard key={flight.id} flight={flight} />
+          ))}
+        </div>
+      )}
+
       {!isLoading && !error && (!flights || flights.length === 0) && (
         <div className="text-center py-8">
           <p className="text-gray-600">
             Nessun volo trovato per i criteri selezionati.
             Prova a modificare i parametri di ricerca.
           </p>
-        </div>
-      )}
-
-      {!isLoading && !error && flights && flights.length > 0 && (
-        <div className="space-y-4">
-          {flights.map((flight) => (
-            <FlightCard 
-              key={flight.id}
-              flight={flight}
-              departureAirport={airports?.find(a => a.id === flight.departureAirportId)}
-              arrivalAirport={airports?.find(a => a.id === flight.arrivalAirportId)}
-              onBook={() => setLocation(`/booking/${flight.id}`)}
-            />
-          ))}
         </div>
       )}
     </div>
