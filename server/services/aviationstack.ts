@@ -2,7 +2,6 @@
 import axios from 'axios';
 import { Flight } from '@shared/schema';
 
-const AVIATIONSTACK_API_KEY = '93a5e19949695fc90e14f9abe74f9c80';
 const BASE_URL = 'http://api.aviationstack.com/v1';
 
 interface AviationStackFlight {
@@ -77,7 +76,7 @@ export async function searchFlights(params: {
     console.log('Ricerca voli con AviationStack:', params);
     
     const queryParams = new URLSearchParams({
-      access_key: AVIATIONSTACK_API_KEY,
+      access_key: process.env.AVIATIONSTACK_API_KEY as string,
       dep_iata: params.departureIata,
       limit: '100',
     });

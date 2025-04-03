@@ -1,6 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import dotenv from 'dotenv';
+dotenv.config(); // Carica le variabili dal file .env
+
+// Aggiungi qui il controllo (Opzionale ma consigliato)
+if (!process.env.AVIATIONSTACK_API_KEY) {
+  console.error("FATAL ERROR: AVIATIONSTACK_API_KEY is not defined in .env file.");
+  process.exit(1);
+}
 
 const app = express();
 app.use(express.json());
